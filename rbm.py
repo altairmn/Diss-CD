@@ -579,7 +579,8 @@ def get_input():
                  "k=",
                  "output-folder=",
                  "n-hidden=",
-                 "batch-size="])
+                 "batch-size=",
+                 "custom"])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err) # will print something like "option -a not recognized"
@@ -609,6 +610,9 @@ if __name__ == '__main__':
 
     cifar_x = data_dict['data']
 
+
+    if 'custom' not in opts:
+
 #    test_rbm(dataset=mnist_x[:10000],
 #            neg_dataset=cifar_x,
 #            learning_rate=0.1,
@@ -618,11 +622,54 @@ if __name__ == '__main__':
 #            n_hidden=500,
 #            k=2)
 #
-    test_rbm(dataset=mnist_x[:10000],
-            neg_dataset=cifar_x,
-            learning_rate=float(opts.get('lr', 0.1)),
-            training_epochs=int(opts.get('epochs', 2)),
-            batch_size=int(opts.get('batch-size', 20)),
-            output_folder=opts.get('output-folder', 'rbm_plots'),
-            n_hidden=int(opts.get('n-hidden', 500)),
-            k=int(opts.get('k', 2)))
+        test_rbm(dataset=mnist_x[:10000],
+                neg_dataset=cifar_x,
+                learning_rate=float(opts.get('lr', 0.1)),
+                training_epochs=int(opts.get('epochs', 2)),
+                batch_size=int(opts.get('batch-size', 20)),
+                output_folder=opts.get('output-folder', 'rbm_plots'),
+                n_hidden=int(opts.get('n-hidden', 500)),
+                k=int(opts.get('k', 2)))
+
+    else:
+
+        test_rbm(dataset=mnist_x[:10000],
+                neg_dataset=cifar_x,
+                learning_rate=0.2,
+                training_epochs=15,
+                batch_size=20,
+                output_folder='rbm-plots',
+                n_hidden=500,
+                k=15)
+
+
+        tr_digit = []
+        # Neg Training on other digits
+        for digit in range(10):
+            this_x = mnist_x[data_y == digit]
+            other_x =  mnist_x[data_y != digit]
+
+            test_rbm(dataset=this_x,
+                    neg_dataset=other_x,
+                    learning_rate=0.1,
+                    training_epochs=15,
+                    batch_size=20,
+                    output_folder='rbm-plots',
+                    n_hidden=500,
+                    k=10)
+
+        # Neg Training on random input
+        rand_rng = numpy.random.RandomState(1234)
+        random_x = rand_rng.uniform(low=0, high=1, size=(10000, 28, 28))
+
+        test_rbm(dataset=mnist_x[:10000],
+                neg_dataset=random_x,
+                learning_rate=0.1,
+                training_epochs=15,
+                batch_size=20,
+                output_folder='rbm-plots',
+                n_hidden=500,
+                k=10)
+
+
+
