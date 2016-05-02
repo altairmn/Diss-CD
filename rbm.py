@@ -28,6 +28,9 @@ from logistic_sgd import load_data
 import pickle
 import gzip
 
+import getopt, sys
+import inspect
+
 
 # start-snippet-1
 class RBM(object):
@@ -377,6 +380,13 @@ def test_rbm(
         output_folder='rbm_plots',
         n_hidden=500,
         k=10):
+
+    frame = inspect.currentframe()
+    args, _, _, values = inspect.getargvalues(frame)
+    print ('function name "%s"' % inspect.getframeinfo(frame)[2])
+    for i in args:
+        print ("    %s = %s" % (i, values[i]))
+
     """
     Demonstrate how to train and afterwards sample from it using Theano.
 
@@ -558,9 +568,32 @@ def test_rbm(
     ## end-snippet-7
     #os.chdir('../')
 
+
+def get_input():
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "",
+                ["dataset=",
+                 "neg-dataset=",
+                 "epochs=",
+                 "lr=",
+                 "k=",
+                 "output-folder=",
+                 "n-hidden=",
+                 "batch-size="])
+    except getopt.GetoptError as err:
+        # print help information and exit:
+        print(err) # will print something like "option -a not recognized"
+        usage()
+        sys.exit(2)
+
+    return dict([(x[2:], y) for x, y in opts])
+
 if __name__ == '__main__':
 
-    with gzip.open('mnist.pkl.gz', 'rb') as f:
+    opts = get_input()
+    print(opts)
+
+    with gzip.open(opts.get('dataset', 'mnist.pkl.gz'), 'rb') as f:
         try:
             train_set, valid_set, test_set = pickle.load(f, encoding='latin1')
         except:
@@ -568,7 +601,7 @@ if __name__ == '__main__':
 
     mnist_x, data_y = train_set
 
-    with open('cifar_disscd.pkl', 'rb') as f:
+    with open(opts.get('neg-dataset', 'cifar_disscd.pkl'), 'rb') as f:
         try:
             data_dict = pickle.load(f, encoding='latin1')
         except:
@@ -576,11 +609,20 @@ if __name__ == '__main__':
 
     cifar_x = data_dict['data']
 
+#    test_rbm(dataset=mnist_x[:10000],
+#            neg_dataset=cifar_x,
+#            learning_rate=0.1,
+#            training_epochs=2,
+#            batch_size=20,
+#            output_folder='rbm-plots',
+#            n_hidden=500,
+#            k=2)
+#
     test_rbm(dataset=mnist_x[:10000],
             neg_dataset=cifar_x,
-            learning_rate=0.1,
-            training_epochs=2,
-            batch_size=40,
-            output_folder='rbm_plots',
-            n_hidden=500,
-            k=2)
+            learning_rate=float(opts.get('lr', 0.1)),
+            training_epochs=int(opts.get('epochs', 2)),
+            batch_size=int(opts.get('batch-size', 20)),
+            output_folder=opts.get('output-folder', 'rbm_plots'),
+            n_hidden=int(opts.get('n-hidden', 500)),
+            k=int(opts.get('k', 2)))
