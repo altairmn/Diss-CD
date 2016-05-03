@@ -14,6 +14,7 @@
 *.7z
 *.dmg
 *.gz
+*.tgz
 *.iso
 *.jar
 *.rar
