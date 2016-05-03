@@ -31,6 +31,7 @@ import gzip
 import getopt, sys
 import inspect
 
+from itertools import cycle
 
 # start-snippet-1
 class RBM(object):
@@ -413,9 +414,12 @@ def test_rbm(
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] // batch_size
     n_neg_train_batches = neg_train_set_x.get_value(borrow=True).shape[0] // batch_size
+    print("Training batches : %d, Neg Training Batches : %d" % (n_train_batches, n_neg_train_batches))
 
     # allocate symbolic variables for the data
     index = T.lscalar()    # index to a [mini]batch
+    neg_index = T.lscalar() # index to neg [mini] batch
+
     x = T.matrix('x')  # the data is presented as rasterized images
     neg_x = T.matrix('neg_x')
 
@@ -448,12 +452,12 @@ def test_rbm(
     # it is ok for a theano function to have no output
     # the purpose of train_rbm is solely to update the RBM parameters
     train_rbm = theano.function(
-        [index],
+        [index, neg_index],
         cost,
         updates=updates,
         givens={
             x: train_set_x[index * batch_size: (index + 1) * batch_size],
-            neg_x: neg_train_set_x[index * batch_size: (index + 1) * batch_size]
+            neg_x: neg_train_set_x[neg_index * batch_size: (neg_index + 1) * batch_size]
         },
         name='train_rbm'
     )
@@ -461,13 +465,32 @@ def test_rbm(
     plotting_time = 0.
     start_time = timeit.default_timer()
 
+
+
+    # store nets for sampling later
+    trained_nets = {}
+
+
+    # different sizes. getting iterable range.
+    if n_train_batches > n_neg_train_batches:
+        indices = list(zip(range(n_train_batches), cycle(range(n_neg_train_batches))))
+    else:
+        indices = list(zip(cycle(range(n_train_batches)), range(n_neg_train_batches)))
+
     # go through training epochs
     for epoch in range(training_epochs):
 
         # go through the training set
         mean_cost = []
-        for batch_index in range(n_train_batches):
-            mean_cost += [train_rbm(batch_index)]
+
+        for batch_index, neg_batch_index  in indices:
+            mean_cost += [train_rbm(batch_index, neg_batch_index)]
+
+        net_params = {'weight': rbm.W.get_value(borrow=False),
+                      'hbias': rbm.hbias.get_value(borrow=False),
+                      'vbias': rbm.vbias.get_value(borrow=False)}
+
+        trained_nets[epoch] = net_params
 
         print('Training epoch %d, cost is ' % epoch, numpy.mean(mean_cost))
 
@@ -489,6 +512,10 @@ def test_rbm(
     end_time = timeit.default_timer()
 
     pretraining_time = (end_time - start_time) - plotting_time
+
+    fname = '%s_trained_nets.pkl' % output_folder
+    with open(fname, 'wb') as fo:
+        pickle.dump({'data': trained_nets}, fo)
 
     print ('Training took %f minutes' % (pretraining_time / 60.))
     ## end-snippet-5 start-snippet-6
@@ -622,7 +649,7 @@ if __name__ == '__main__':
 #            n_hidden=500,
 #            k=2)
 #
-        test_rbm(dataset=mnist_x[:10000],
+        test_rbm(dataset=mnist_x,
                 neg_dataset=cifar_x,
                 learning_rate=float(opts.get('lr', 0.1)),
                 training_epochs=int(opts.get('epochs', 2)),
@@ -633,12 +660,12 @@ if __name__ == '__main__':
 
     else:
 
-        test_rbm(dataset=mnist_x[:10000],
+        test_rbm(dataset=mnist_x,
                 neg_dataset=cifar_x,
                 learning_rate=0.2,
                 training_epochs=15,
                 batch_size=20,
-                output_folder='rbm-plots',
+                output_folder='mnist_diss_cd_cifar',
                 n_hidden=500,
                 k=15)
 
@@ -654,22 +681,22 @@ if __name__ == '__main__':
                     learning_rate=0.1,
                     training_epochs=15,
                     batch_size=20,
-                    output_folder='rbm-plots',
+                    output_folder='mnist_diss_cd_%d' % digit,
                     n_hidden=500,
                     k=10)
 
         # Neg Training on random input
         rand_rng = numpy.random.RandomState(1234)
-        random_x = rand_rng.uniform(low=0, high=1, size=(10000, 28, 28))
+        random_x = rand_rng.uniform(low=0, high=1, size=(50000, 28, 28))
 
-        test_rbm(dataset=mnist_x[:10000],
+        test_rbm(dataset=mnist_x,
                 neg_dataset=random_x,
-                learning_rate=0.1,
+                learning_rate=0.15,
                 training_epochs=15,
                 batch_size=20,
-                output_folder='rbm-plots',
+                output_folder='mnist_diss_cd_random',
                 n_hidden=500,
-                k=10)
+                k=15)
 
 
 
