@@ -593,7 +593,7 @@ def test_rbm(
     #image = Image.fromarray(image_data)
     #image.save('samples.png')
     ## end-snippet-7
-    #os.chdir('../')
+    os.chdir('../')
 
 
 def get_input():
