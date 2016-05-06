@@ -4,8 +4,8 @@ The dataset(s) must be present in the same folder as the program.
 They should have the `.pkl.gz` extension.
 
 To download MNIST and CIFAR10 (processed for this project), use the following links:
-MNIST:
-CIFAR10:
+MNIST: http://bit.ly/1Tvjfdu
+CIFAR10: http://bit.ly/24wzcez
 
 
 ### Description
