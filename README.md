@@ -33,6 +33,7 @@ using PCD.
 
 
 Example:
+
     python mnist_digits_pcd.py
 
 
@@ -43,4 +44,5 @@ and untrains on the rest of the digits.
 
 
 Example:
+
     python mnist_digits_disscd.py
