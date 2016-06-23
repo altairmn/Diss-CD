@@ -513,6 +513,8 @@ if __name__ == '__main__':
 
     opts = get_input()
 
+    # Trains on MNIST and untrains on CIFAR.
+
     with gzip.open(opts.get('dataset', 'mnist.pkl.gz'), 'rb') as f:
         try:
             train_set, valid_set, test_set = pickle.load(f, encoding='latin1')
@@ -554,6 +556,13 @@ if __name__ == '__main__':
     # CUSTOM CODE #
     ###############
 
+    # Enable to custom flag from command line and put custom code below this line to run.
+
+
+    ## Examples
+
+    # Example1 : Training on MNIST and untraining on CIFAR
+
         test_rbm(dataset=mnist_x,
                 neg_dataset=cifar_x,
                 learning_rate=0.2,
@@ -564,6 +573,7 @@ if __name__ == '__main__':
                 k=15)
 
 
+    # Example 2: Training on digit i and untraining on other digits
         tr_digit = []
         # Neg Training on other digits
         for digit in range(10):
@@ -578,6 +588,8 @@ if __name__ == '__main__':
                     output_folder='mnist_diss_cd_%d' % digit,
                     n_hidden=500,
                     k=10)
+
+    # Example 3: Training on MNIST and untraining on random matrices (28 x 28)
 
         # Neg Training on random input
         rand_rng = numpy.random.RandomState(1234)
