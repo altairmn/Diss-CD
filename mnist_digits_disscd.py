@@ -2,7 +2,7 @@
 This program trains on every digit of MNIST separately (digits from 0 to 9).
 Data used for untraining is that of every other digit i.e.
 if the program is train on digit i then it is untrained on all j != i where
-j is in [0:10)
+j is in {0, 1, 2, ..., 9}
 """
 import theano.tensor as T
 import theano
